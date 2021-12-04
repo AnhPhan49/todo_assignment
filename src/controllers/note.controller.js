@@ -1,5 +1,9 @@
 const noteModel = require("../models/note.model")
-const { addTask2DB } = require('../services/note.service')
+const {
+  addTask2DB,
+  checkUpdateTask,
+  getTaskList,
+} = require("../services/note.service");
 const moment = require("moment")
 
 async function checkLimitTask (id) {
@@ -19,52 +23,13 @@ async function checkLimitTask (id) {
   }
 }
 
-async function getTaskList ( user, day) {
-  try {
-    const queryDay = moment(day).startOf("day");
-    let taskList = await noteModel.find({
-      user: user,
-      createdAt: {
-        $gte: queryDay.toDate(),
-        $lte: moment(queryDay).endOf("day").toDate(),
-      },
-    });
-    return taskList;
-  } catch (err) {
-    throw new Error(err.message);
-  }
-}
-
-// async function addTask (content, id) {
-//   try {
-//     await noteModel.create({
-//       content: content,
-//       user: id
-//     })
-//   } catch (err) {
-//     throw new Error(err.message);
-//   }
-// }
-
-async function checkTaskExist (id, user) {
-  try {
-    await noteModel.findOneAndUpdate({
-      _id: id,
-      user: user,
-      ticked: true,
-    });
-  } catch (err) {
-    throw new Error("Opps, something went wrong");
-  }
-}
-
 module.exports.create = async (req, res) => {
   try {
     const { content } = req.body;
     const userId = req.user.id;
     await checkLimitTask(userId);
-    await addTask2DB(content, userId);
-    return res.status(200).json({ message: "Successful"});
+    let data = await addTask2DB(content, userId);
+    return res.status(200).json({ message: "Successful", data: data});
   } catch (err) {
     return res.status(400).json({ message: err.message});
   }
@@ -75,8 +40,8 @@ module.exports.tickTask = async (req, res) => {
     const { id } = req.params
     const user = req.user.id
     if(!id) throw new Error("Missing id");
-    await checkTaskExist(id, user);
-    return res.status(200).json({ message: "Successful"})
+    const data = await checkUpdateTask(id, user);
+    return res.status(200).json({ message: "Successful", data: data})
   } catch (err) {
     return res.status(400).json({ message: err.message });
   }

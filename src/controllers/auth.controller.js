@@ -1,45 +1,11 @@
 require("dotenv").config()
 const { validationResult } = require("express-validator");
-const userModel = require("../models/user.model");
-const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
-
-async function validateExistAccount(user) {
-  try {
-    let account = await userModel.findOne({user: user});
-    if(account) 
-      return true;
-    return false;
-  } catch (err) {
-    throw new Error (err.message);
-  }
-}
-
-async function createAccount(user, password, repassword) {
-  try {
-    if(password !== repassword) throw new Error ("Repassword not match");
-    const hashPassword = await bcrypt.hash(password, 10);
-    await userModel.create({
-      user:user,
-      password: hashPassword
-    });
-  } catch (err) {
-    throw new Error(err.message);
-  }
-}
-
-async function passwordCompare(user, password) {
-  try {
-    const account = await userModel.findOne({user: user});
-    let passwordMatch = await bcrypt.compare(password, account.password);
-    if (!passwordMatch) {
-      throw new Error( "Wrong email or password");
-    }
-    return account._id
-  } catch (err) {
-    throw new Error(err.message);
-  }
-}
+const {
+  validateExistAccount,
+  createAccount,
+  passwordCompare,
+} = require("../services/user.service");
 
 module.exports.register = async (req, res) => {
   try {
@@ -54,10 +20,10 @@ module.exports.register = async (req, res) => {
       }
       throw new Error(message);
     }
-    let { user, password, repassword } = req.body;
+    let { user, password } = req.body;
     let checkExist = await validateExistAccount(user);              // check exist account
     if (checkExist) throw new Error("Account already exist")
-    await createAccount(user, password, repassword);                //write new data to database
+    await createAccount(user, password);                //write new data to database
     return res.status(200).json({message: "Successful"})
   } catch (err) {
     return res.status(400).json({ message: err.message });

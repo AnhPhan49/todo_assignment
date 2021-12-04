@@ -10,7 +10,7 @@ mongoConnect() //connect to database
 
 route(app)    // route
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`http://localhost:${port}`);
 });

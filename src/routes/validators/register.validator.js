@@ -14,12 +14,4 @@ module.exports = [
     .withMessage("Please do not leave the password blank")
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters"),
-
-  check("password")
-    .exists()
-    .withMessage("Please provide re-password")
-    .notEmpty()
-    .withMessage("Please do not leave the re-password blank")
-    .isLength({ min: 6 })
-    .withMessage("Re-password must be at least 6 characters"),
 ];
